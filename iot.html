@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Experiments Dashboard</title>
+</head>
+<body>
+
+  <h2>Experiments Dashboard</h2>
+
+  <!-- Experiment 1 -->
+  <div>
+    <h3>Experiment 1: LED Blink</h3>
+    <button onclick="toggleCode(this)">Show Code</button>
+    <button onclick="copyCode(this)">Copy</button>
+    <pre style="display:none;">
+#include <WiFi.h>
+#include <ThingSpeak.h>
+#include <DHT.h>
+
+#define DHTPIN 5
+#define DHTTYPE DHT11
+
+const char* ssid = "Vedant1434";
+const char* pass = "123456789";
+const unsigned long channel = 3009009;
+const char* key = "S0Y30W6GM4MT0SA0";
+
+WiFiClient client;
+DHT dht(DHTPIN, DHTTYPE);
+
+void setup() {
+  Serial.begin(115200);
+  dht.begin();
+
+  WiFi.begin(ssid, pass);
+  while (WiFi.status() != WL_CONNECTED) delay(500);
+
+  ThingSpeak.begin(client);
+}
+
+void loop() {
+  float t = dht.readTemperature();
+  float h = dht.readHumidity();
+
+  if (isnan(t) || isnan(h)) return;
+
+  ThingSpeak.setField(1, t);
+  ThingSpeak.setField(2, h);
+  ThingSpeak.writeFields(channel, key);
+
+  delay(20000);
+}
+
+    </pre>
+  </div>
+  <hr>
+
+  <!-- Experiment 2 -->
+  <div>
+    <h3>Experiment 2: Ultrasonic distance upload</h3>
+    <button onclick="toggleCode(this)">Show Code</button>
+    <button onclick="copyCode(this)">Copy</button>
+    <pre style="display:none;">
+#include <WiFi.h>        // 🧠 Connect ESP32 to WiFi
+#include <ThingSpeak.h>  // 🧠 Send data to ThingSpeak cloud
+
+#define TRIG 5           // 🧠 Trigger pin of Ultrasonic sensor
+#define ECHO 18          // 🧠 Echo pin of Ultrasonic sensor
+
+// 🧠 WiFi + ThingSpeak setup info
+const char* ssid = "Vedant1434";         // Your WiFi name
+const char* pass = "123456789";          // Your WiFi password
+const unsigned long channel = 3009009;   // ThingSpeak channel ID
+const char* key = "S0Y30W6GMN4TOSA0";    // ThingSpeak write API key
+
+WiFiClient client;
+
+void setup() {
+  Serial.begin(115200);      // 🧠 Start Serial Monitor
+  pinMode(TRIG, OUTPUT);     // 🧠 Set trigger pin as output
+  pinMode(ECHO, INPUT);      // 🧠 Set echo pin as input
+
+  WiFi.begin(ssid, pass);    // 🧠 Connect to WiFi
+  while (WiFi.status() != WL_CONNECTED) delay(500);
+  
+  ThingSpeak.begin(client);  // 🧠 Start ThingSpeak connection
+}
+
+void loop() {
+  // 🧠 Step 1: Send short pulse to trigger measurement
+  digitalWrite(TRIG, LOW); delayMicroseconds(2);
+  digitalWrite(TRIG, HIGH); delayMicroseconds(10);
+  digitalWrite(TRIG, LOW);
+
+  // 🧠 Step 2: Measure echo pulse duration and calculate distance
+  float d = pulseIn(ECHO, HIGH) * 0.034 / 2;  // distance in cm
+  Serial.printf("Distance:", d);
+
+  // 🧠 Step 3: Upload distance to ThingSpeak cloud
+  ThingSpeak.setField(1, d);
+  ThingSpeak.writeFields(channel, key);
+
+  // 🧠 Step 4: Wait 20 sec before next update (ThingSpeak rule)
+  delay(20000);
+}
+
+
+    </pre>
+  </div>
+  <hr>
+
+  <!-- Experiment 3 -->
+  <div>
+    <h3>Experiment 3: blynk app</h3>
+    <button onclick="toggleCode(this)">Show Code</button>
+    <button onclick="copyCode(this)">Copy</button>
+    <pre style="display:none;">
+#define BLYNK_TEMPLATE_ID "TMPLxxxxxxx"
+#define BLYNK_AUTH_TOKEN  "YOUR_AUTH_TOKEN"
+#include <WiFi.h>
+#include <BlynkSimpleEsp32.h>
+
+char auth[] = BLYNK_AUTH_TOKEN;
+char ssid[] = "Vedant1434";
+char pass[] = "123456789";
+
+#define LED 2   // Built-in LED on most ESP32 boards (GPIO 2)
+
+void setup() {
+  pinMode(LED, OUTPUT);
+  Blynk.begin(auth, ssid, pass);   // Connect ESP32 to WiFi + Blynk
+}
+
+BLYNK_WRITE(V1) {                  // Button in app → Virtual Pin V1
+  digitalWrite(LED, param.asInt()); // Turn LED ON (1) / OFF (0)
+}
+
+void loop() {
+  Blynk.run();
+}
+
+    </pre>
+  </div>
+  <hr>
+
+  <!-- Experiment 4 -->
+  <div>
+    <h3>Experiment 4: voice control</h3>
+    <button onclick="toggleCode(this)">Show Code</button>
+    <button onclick="copyCode(this)">Copy</button>
+    <pre style="display:none;">
+#include <WiFi.h>             
+#include <SinricPro.h>        
+#include <SinricProSwitch.h>  
+
+const char* ssid = "Vedant1434";         // Your WiFi network name (SSID)
+const char* pass = "123456789";          // Your WiFi password
+const char* appKey = "YOUR_APP_KEY";     // App Key from Sinric Pro dashboard
+const char* appSecret = "YOUR_APP_SECRET"; // App Secret from Sinric Pro
+const char* deviceID = "YOUR_DEVICE_ID"; // Device ID of your Switch in Sinric Pro
+
+#define LED 2   // GPIO 2 (onboard LED pin on most ESP32 boards)
+
+// This function is automatically called when the switch state changes
+bool power(const String& deviceId, bool &on) {
+  digitalWrite(LED, on);  
+  return true;           
+}
+
+void setup() {
+  pinMode(LED, OUTPUT);           // Set the LED pin as an OUTPUT pin
+  WiFi.begin(ssid, pass);         // Start connecting to WiFi
+  while (WiFi.status() != WL_CONNECTED) { // Wait until connected
+    delay(300);                   // Small delay between checks
+  }
+  // --- Sinric Pro Setup ---
+  // Create a SinricProSwitch device object using your Device ID
+  SinricProSwitch &d = SinricPro[deviceID];
+  // Attach the callback function so Sinric knows what to do when you turn the switch ON/OFF
+  d.onPowerState(power);
+  // Begin the Sinric Pro connection using your app key and secret
+  SinricPro.begin(appKey, appSecret);
+}
+void loop() {
+  SinricPro.handle();  // Maintain connection and handle incoming commands
+}
+
+    </pre>
+  </div>
+  <hr>
+
+  <!-- Experiment 5 -->
+  <div>
+    <h3>Experiment 5: firebase dht 11</h3>
+    <button onclick="toggleCode(this)">Show Code</button>
+    <button onclick="copyCode(this)">Copy</button>
+    <pre style="display:none;">
+#include <WiFi.h>
+#include <FirebaseESP32.h>
+#include <DHT.h>
+
+#define WIFI_SSID "Your_WiFi_Name"
+#define WIFI_PASSWORD "Your_WiFi_Password"
+#define FIREBASE_HOST "your-project-id.firebaseio.com"
+#define FIREBASE_AUTH "your_database_secret"
+
+#define DHTPIN 4
+#define DHTTYPE DHT11
+
+DHT dht(DHTPIN, DHTTYPE);
+FirebaseData fbData;
+
+void setup() {
+  Serial.begin(115200);
+  dht.begin();
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  while (WiFi.status() != WL_CONNECTED) delay(300);
+  Firebase.begin(FIREBASE_HOST, FIREBASE_AUTH);
+}
+
+void loop() {
+  float t = dht.readTemperature();
+  float h = dht.readHumidity();
+  if (!isnan(t) && !isnan(h)) {
+    Firebase.setFloat(fbData, "/DHT11/Temperature", t);
+    Firebase.setFloat(fbData, "/DHT11/Humidity", h);
+  }
+  delay(10000);
+}
+
+    </pre>
+  </div>
+  <hr>
+
+  <!-- Experiment 6 -->
+  <div>
+    <h3>Experiment 6: MQTT publish subscribe</h3>
+    <button onclick="toggleCode(this)">Show Code</button>
+    <button onclick="copyCode(this)">Copy</button>
+    <pre style="display:none;">
+#include <WiFi.h>
+#include <PubSubClient.h>
+#include <DHT.h>
+
+#define WIFI_SSID "Your_WiFi_Name"
+#define WIFI_PASS "Your_WiFi_Password"
+#define MQTT_SERVER "test.mosquitto.org"
+
+#define DHTPIN 4
+#define DHTTYPE DHT11
+#define LED 2
+
+DHT dht(DHTPIN, DHTTYPE);
+WiFiClient espClient;
+PubSubClient client(espClient);
+
+void callback(char* topic, byte* msg, unsigned int len) {
+  if ((char)msg[0] == 'O') digitalWrite(LED, HIGH);   // ON
+  else digitalWrite(LED, LOW);                        // OFF
+}
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(LED, OUTPUT);
+  dht.begin();
+  WiFi.begin(WIFI_SSID, WIFI_PASS);
+  while (WiFi.status() != WL_CONNECTED) delay(300);
+  client.setServer(MQTT_SERVER, 1883);
+  client.setCallback(callback);
+}
+
+void loop() {
+  if (!client.connected()) {
+    if (client.connect("ESP32")) client.subscribe("home/led");
+  }
+  client.loop();
+
+  float t = dht.readTemperature();
+  float h = dht.readHumidity();
+
+  if (!isnan(t) && !isnan(h)) {
+    String msg = String("T:") + t + "C H:" + h + "%";
+    client.publish("home/dht", msg.c_str());
+  }
+
+  delay(5000); // publish every 5 seconds
+}
+
+    </pre>
+  </div>
+  <hr>
+
+  <!-- Experiment 7 -->
+  <div>
+    <h3>Experiment 7: mqtt exp 7 relay control</h3>
+    <button onclick="toggleCode(this)">Show Code</button>
+    <button onclick="copyCode(this)">Copy</button>
+    <pre style="display:none;">
+#include <WiFi.h>
+#include <PubSubClient.h>
+
+#define WIFI_SSID "IoT"
+#define WIFI_PASS "12345678"
+#define MQTT_SERVER "broker.hivemq.com"
+#define RELAY 2
+
+WiFiClient espClient;
+PubSubClient client(espClient);
+
+void callback(char* topic, byte* msg, unsigned int len) {
+  digitalWrite(RELAY, (char)msg[0] == '1'); // 1=ON, 0=OFF
+}
+
+void setup() {
+  pinMode(RELAY, OUTPUT);
+  WiFi.begin(WIFI_SSID, WIFI_PASS);
+  while (WiFi.status() != WL_CONNECTED) delay(200);
+  client.setServer(MQTT_SERVER, 1883);
+  client.setCallback(callback);
+}
+
+void loop() {
+  if (!client.connected()) {
+    if (client.connect("ESP32")) client.subscribe("RELAY");
+  }
+  client.loop();
+}
+
+    </pre>
+  </div>
+  <hr>
+
+  <!-- Experiment 8 -->
+  <div>
+    <h3>DO NOT OPEN</h3>
+    <button onclick="toggleCode(this)">Show Code</button>
+    <button onclick="copyCode(this)">Copy</button>
+    <pre style="display:none;">
+// Buzzer Alarm
+int buzz = 8;
+void setup() {
+  pinMode(buzz, OUTPUT);
+}
+void loop() {
+  digitalWrite(buzz, HIGH);
+  delay(500);
+  digitalWrite(buzz, LOW);
+  delay(500);
+}
+    </pre>
+  </div>
+
+  <script>
+    function toggleCode(btn) {
+      const pre = btn.parentElement.querySelector('pre');
+      if (pre.style.display === 'none') {
+        pre.style.display = 'block';
+        btn.textContent = 'Hide Code';
+      } else {
+        pre.style.display = 'none';
+        btn.textContent = 'Show Code';
+      }
+    }
+
+    function copyCode(btn) {
+      const code = btn.parentElement.querySelector('pre').innerText;
+      navigator.clipboard.writeText(code);
+      btn.textContent = 'Copied!';
+      setTimeout(() => btn.textContent = 'Copy', 1500);
+    }
+  </script>
+
+</body>
+</html>
