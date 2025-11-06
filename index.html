@@ -334,20 +334,71 @@ void loop() {
 
   <!-- Experiment 8 -->
   <div>
-    <h3>DO NOT OPEN</h3>
+    <h3>exp 8 app script</h3>
     <button onclick="toggleCode(this)">Show Code</button>
     <button onclick="copyCode(this)">Copy</button>
     <pre style="display:none;">
-// Buzzer Alarm
-int buzz = 8;
-void setup() {
-  pinMode(buzz, OUTPUT);
+// Google Apps Script (paste in Apps Script Editor)
+function doPost(e) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  if (!e || !e.postData || !e.postData.contents)
+    return ContentService.createTextOutput("No data received");
+
+  var data = JSON.parse(e.postData.contents);
+  if (data.key !== "MY_SECRET_KEY_123")
+    return ContentService.createTextOutput("Unauthorized");
+
+  var temp = data.temp || "NA";
+  var hum = data.hum || "NA";
+  sheet.appendRow([new Date(), temp, hum]);
+  return ContentService.createTextOutput("Data added: " + temp + ", " + hum);
 }
+
+// Arduino Code
+#include <WiFi.h>
+#include <HTTPClient.h>
+#include "DHT.h"
+#include <ArduinoJson.h>
+
+#define DHTPIN 5
+#define DHTTYPE DHT11
+DHT dht(DHTPIN, DHTTYPE);
+
+const char* ssid = "YOUR_WIFI_NAME";          
+const char* password = "YOUR_WIFI_PASSWORD";  
+String GAS_URL = "https://script.google.com/macros/s/PASTE_YOUR_URL_HERE/exec"; 
+String SECRET_KEY = "MY_SECRET_KEY_123";      
+
+void setup() {
+  Serial.begin(115200);
+  dht.begin();
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) { delay(500); Serial.print("."); }
+  Serial.println("\nWiFi connected!");
+}
+
 void loop() {
-  digitalWrite(buzz, HIGH);
-  delay(500);
-  digitalWrite(buzz, LOW);
-  delay(500);
+  float t = dht.readTemperature();
+  float h = dht.readHumidity();
+  if (isnan(t) || isnan(h)) return;
+
+  StaticJsonDocument<200> doc;
+  doc["temp"] = t;
+  doc["hum"] = h;
+  doc["key"] = SECRET_KEY;
+
+  String jsonPayload;
+  serializeJson(doc, jsonPayload);
+
+  if (WiFi.status() == WL_CONNECTED) {
+    HTTPClient http;
+    http.begin(GAS_URL);
+    http.addHeader("Content-Type", "application/json");
+    int code = http.POST(jsonPayload);
+    Serial.println(http.getString());
+    http.end();
+  }
+  delay(5000);
 }
     </pre>
   </div>
