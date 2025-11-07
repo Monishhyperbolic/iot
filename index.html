@@ -8,16 +8,15 @@
 <body>
 
   <h2>Experiments Dashboard</h2>
-
   <!-- Experiment 1 -->
   <div>
     <h3>Experiment 1: thinkspeak dht11</h3>
     <button onclick="toggleCode(this)">Show Code</button>
     <button onclick="copyCode(this)">Copy</button>
     <pre style="display:none;">
-#include <WiFi.h>
-#include <ThingSpeak.h>
-#include <DHT.h>
+#include WiFi.h
+#include ThingSpeak.h
+#include DHT.h
 
 #define DHTPIN 5
 #define DHTTYPE DHT11
@@ -63,8 +62,8 @@ void loop() {
     <button onclick="toggleCode(this)">Show Code</button>
     <button onclick="copyCode(this)">Copy</button>
     <pre style="display:none;">
-#include <WiFi.h>        // 🧠 Connect ESP32 to WiFi
-#include <ThingSpeak.h>  // 🧠 Send data to ThingSpeak cloud
+#include WiFi.h       // 🧠 Connect ESP32 to WiFi
+#include ThingSpeak.h  // 🧠 Send data to ThingSpeak cloud
 
 #define TRIG 5           // 🧠 Trigger pin of Ultrasonic sensor
 #define ECHO 18          // 🧠 Echo pin of Ultrasonic sensor
@@ -119,8 +118,8 @@ void loop() {
     <pre style="display:none;">
 #define BLYNK_TEMPLATE_ID "TMPLxxxxxxx"
 #define BLYNK_AUTH_TOKEN  "YOUR_AUTH_TOKEN"
-#include <WiFi.h>
-#include <BlynkSimpleEsp32.h>
+#include WiFi.h
+#include BlynkSimpleEsp32.h
 
 char auth[] = BLYNK_AUTH_TOKEN;
 char ssid[] = "Vedant1434";
@@ -151,9 +150,9 @@ void loop() {
     <button onclick="toggleCode(this)">Show Code</button>
     <button onclick="copyCode(this)">Copy</button>
     <pre style="display:none;">
-#include <WiFi.h>             
-#include <SinricPro.h>        
-#include <SinricProSwitch.h>  
+#include WiFi.h         
+#include SinricPro.h   
+#include SinricProSwitch.h 
 
 const char* ssid = "Vedant1434";         // Your WiFi network name (SSID)
 const char* pass = "123456789";          // Your WiFi password
@@ -197,9 +196,9 @@ void loop() {
     <button onclick="toggleCode(this)">Show Code</button>
     <button onclick="copyCode(this)">Copy</button>
     <pre style="display:none;">
-#include <WiFi.h>
-#include <FirebaseESP32.h>
-#include <DHT.h>
+#include WiFi.h
+#include FirebaseESP32.h
+#include DHT.h
 
 #define WIFI_SSID "Your_WiFi_Name"
 #define WIFI_PASSWORD "Your_WiFi_Password"
@@ -240,9 +239,9 @@ void loop() {
     <button onclick="toggleCode(this)">Show Code</button>
     <button onclick="copyCode(this)">Copy</button>
     <pre style="display:none;">
-#include <WiFi.h>
-#include <PubSubClient.h>
-#include <DHT.h>
+#include WiFi.h
+#include PubSubClient.h
+#include DHT.h
 
 #define WIFI_SSID "Your_WiFi_Name"
 #define WIFI_PASS "Your_WiFi_Password"
@@ -298,8 +297,8 @@ void loop() {
     <button onclick="toggleCode(this)">Show Code</button>
     <button onclick="copyCode(this)">Copy</button>
     <pre style="display:none;">
-#include <WiFi.h>
-#include <PubSubClient.h>
+#include WiFi.h
+#include PubSubClient.h
 
 #define WIFI_SSID "IoT"
 #define WIFI_PASS "12345678"
@@ -355,10 +354,10 @@ function doPost(e) {
 }
 
 // Arduino Code
-#include <WiFi.h>
-#include <HTTPClient.h>
+#include WiFi.h
+#include HTTPClient.h
 #include "DHT.h"
-#include <ArduinoJson.h>
+#include ArduinoJson.h
 
 #define DHTPIN 5
 #define DHTTYPE DHT11
